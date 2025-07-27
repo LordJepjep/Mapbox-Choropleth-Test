@@ -47,7 +47,7 @@
 
         #features {
             top: 0;
-            height: 100px;
+            height: 200px;
             margin-top: 20px;
             width: 250px;
         }
@@ -58,7 +58,7 @@
             line-height: 18px;
             height: 150px;
             margin-bottom: 40px;
-            width: 100px;
+            width: 150;
         }
 
         .legend-key {
@@ -74,39 +74,37 @@
 <body>
     <div id="map"></div>
     <div class="map-overlay" id="features">
-        <h2>US population density</h2>
-        <div id="pd">Hover over a state!</div>
+        <h2>Philippine Voting Population Map</h2>
+        <div id="pd">Hover over a municipality!</div>
     </div>
     <div class="map-overlay" id="legend"></div>
 
     <script>
         const layers = [
-            '0-10',
-            '10-20',
-            '20-50',
-            '50-100',
-            '100-200',
-            '200-500',
-            '500-1000',
-            '1000+'
+            'Extremely Low',
+            'Very Low',
+            'Low',
+            'Medium',
+            'High',
+            'Very High',
+            'Extremely High'
         ];
         const colors = [
-            '#FFEDA0',
-            '#FED976',
-            '#FEB24C',
-            '#FD8D3C',
-            '#FC4E2A',
-            '#E31A1C',
-            '#BD0026',
-            '#800026'
+            '#fef0d9',
+            '#fdd49e',
+            '#fdbb84',
+            '#fc8d59',
+            '#ef6548',
+            '#d7301f',
+            '#990000'
         ];
 
         mapboxgl.accessToken = 'pk.eyJ1IjoibG9yZGplbmZlciIsImEiOiJjbWRpbXQ0ZXowZXZhMmxwd203OXNhbXJ1In0.uOQ6_wBRBd_XiEVTv8o5Jg';
         const map = new mapboxgl.Map({
             container: 'map', // container ID
-            style: 'mapbox://styles/lordjenfer/cmdk8iliw007w01sjftbk4sk4', // style URL
-            center: [-74.5, 40], // starting position [lng, lat]
-            zoom: 9, // starting zoom
+            style: 'mapbox://styles/lordjenfer/cmdlod4ca008z01sjdbpa30vl', // style URL
+            center: [121.727, 12.968], // [lng, lat]
+            zoom: 4.9, // starting zoom
         });
         map.on('load', () => {
             const legend = document.getElementById('legend');
@@ -126,14 +124,33 @@
             });
         });
         map.on('mousemove', (event) => {
-            const states = map.queryRenderedFeatures(event.point, {
-                layers: ['statedata']
+            const municipality = map.queryRenderedFeatures(event.point, {
+                layers: ['Voting Density']
             });
-            document.getElementById('pd').innerHTML = states.length
-                ? `<h3>${states[0].properties.name}</h3><p><strong><en>${states[0].properties.density}</strong> people per sqaure mile </em></p>`
-                : `<p>Hover over a state!</p>`;
+
+            document.getElementById('pd').innerHTML = municipality.length
+                ? (() => {
+                    const props = municipality[0].properties;
+
+                    const density = props["Voting Population Density"];
+
+                    const rawVoters = props["Total Voting Population"] || "0";
+                    const rawProjection = props["Population Projection"] || "0";
+
+                    const voters = parseInt(rawVoters.replace(/[^\d]/g, "")).toLocaleString();
+                    const projected = parseInt(rawProjection.replace(/[^\d]/g, "")).toLocaleString();
+
+                    return `
+        <h3>${props.name}</h3>
+        <p><strong><em>${density}</em></strong></p>
+        <p><strong><em>${voters}</em></strong> registered voters</p>
+        <p><strong><em>${projected}</em></strong> projected population for 2025</p>`;
+                })()
+                : `<p>Hover over a municipality!</p>`;
+
 
         });
+
         map.getCanvas().style.cursor = 'defualt';
         map.fitBounds([
             [-133.2421875, 16.972741],
